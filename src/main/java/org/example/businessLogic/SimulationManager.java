@@ -1,11 +1,11 @@
 package org.example.businessLogic;
 import org.example.gui.SimulationFrame;
+import org.example.model.SelectionPolicy;
 import org.example.model.Server;
 import org.example.model.Task;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SimulationManager implements Runnable{
     private int timeLimit;
@@ -37,6 +37,13 @@ public class SimulationManager implements Runnable{
         this.peakTime=-1;
         this.frame=new SimulationFrame();
         this.frame.addStartActionListener(new StartActionListener());
+        this.frame.addRestartActionListener(new RestartActionListener());
+        this.frame.addChangeStrategyActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               if(scheduler!=null) scheduler.changeStrategy(frame.getSelectedStrategy());
+            }
+        });
         this.time=0;
         this.running=false;
         this.generatedTasks=Collections.synchronizedList(new ArrayList<Task>());
@@ -100,54 +107,24 @@ public class SimulationManager implements Runnable{
         java.io.PrintWriter w=null;
         try{  w = new java.io.PrintWriter("LIDL.txt");
               while(this.running && this.time<=this.timeLimit && this.stillServing())
-              {
-                    Iterator<Task> it=this.generatedTasks.iterator();
-                    while(it.hasNext())
-                    {
-                       Task aux=it.next();
-                       if(aux.getArrivalTime()<=this.time)
-                       {try{
-                               this.scheduler.dispatchTask(aux);
-                               this.nrOfClientsInLine++;
-                               int index=this.scheduler.findTaskServer(aux.getId());
-                               if(index!=-1) this.frame.addClient(aux.getId(),index);
-                               it.remove();
-                           }catch(Exception e)
-                           {System.out.println(e.getMessage());}
-                       }else break;
-                    }
+              {     this.addClientsInQueues();
                     this.analyse();
                     Thread.currentThread().sleep(20L);
                     this.writeInFile(w);
                     w.flush();
-
-                    for(Server s: this.scheduler.getServers())
-                    {
-                        this.frame.eraseClient(s.getId()-1,s.getT().size());
-                    }
-
+                    updateQueues();
                     this.time++;
                     try{Thread.sleep(1000L);}
-                    catch(Exception e)
-                    {Thread.currentThread().interrupt();break;}}
-                  this.closeThreads();
-                  int wt=0,st=0,nr=0;
-                  for(Server s: this.scheduler.getServers())
-                  {
-                      wt+=s.getTotalWaitingTime();
-                      st+=s.getTotalServiceTime();
-                      nr+=s.getNrClientsServed();
-                  }
-                  if(nr!=0)
-                  {
-                      this.averageWaitingTime=(double)wt/this.nrOfClientsInLine;
-                      this.averageServiceTime=(double)st/nr;
-                  }
-
-                  this.printConclusions(w);
-              } catch(Exception e) {System.out.println(e.getMessage());}
-              finally {w.close();}
-          }
+                    catch(Exception e) {Thread.currentThread().interrupt();break;}
+              }
+                    updateQueues();
+                    this.writeInFile(w);
+                    w.flush();
+                    this.scheduler.closeThreads();
+                    this.printConclusions(w);
+        } catch(Exception e) {System.out.println(e.getMessage());}
+        finally {w.close(); this.running=false;}
+    }
 
     public void analyse()
     {
@@ -178,43 +155,69 @@ public class SimulationManager implements Runnable{
 
     public void printConclusions(java.io.PrintWriter w)
     {
-            if(this.averageServiceTime==-1)
+        int wt=0,st=0,nr=0;
+        for(Server s: this.scheduler.getServers())
+        {
+            wt+=s.getTotalWaitingTime();
+            st+=s.getTotalServiceTime();
+            nr+=s.getNrClientsServed();
+        }
+        if(nr!=0)
+        {   this.averageWaitingTime=(double)wt/this.nrOfClientsInLine;
+            this.averageServiceTime=(double)st/nr;
+        }
+        if(this.averageServiceTime==-1)
             {
                 w.println("Nu s-a servit niciun client! Nu se pot calcula datele cerute!");
+                return;
             }
             w.println("Average waiting time: "+this.averageWaitingTime);
             w.println("Average service time: "+this.averageServiceTime);
             w.println("Peak time: "+this.peakTime);
-
+            this.frame.displayOutput(this.peakTime,this.averageWaitingTime,this.averageServiceTime);
     }
 
-    public boolean stillServing()
-    {
-        if(this.generatedTasks.isEmpty())
-        {
-        for(Server s: this.scheduler.getServers())
-        {
-            if(!s.getT().isEmpty()) {return true;}
+    public boolean stillServing() {
+        if (this.generatedTasks.isEmpty()) {
+            for (Server s : this.scheduler.getServers()) {
+                if (!s.getT().isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
         }
-        return false;}
         return true;
     }
 
-    public void closeThreads()
-    {
-        for(Server s: this.scheduler.getServers())
+    public void addClientsInQueues() {
+        Iterator<Task> it=this.generatedTasks.iterator();
+        while(it.hasNext())
         {
-            s.setRunning(false);
-            s.getT().clear();
+            Task aux=it.next();
+            if(aux.getArrivalTime()<=this.time){
+                try{
+                    this.scheduler.dispatchTask(aux);
+                    this.nrOfClientsInLine++;
+                    int index=this.scheduler.findTaskServer(aux.getId());
+                    if(index!=-1) this.frame.eraseClientFromStore(aux.getId(),index);
+
+                    it.remove();
+                }catch(Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }else break;
         }
+    }
+
+    public void updateQueues() {
+        for(Server s: this.scheduler.getServers())
+        {this.frame.eraseClient(s.getId()-1,s.getT().size());}
     }
 
     private class StartActionListener implements ActionListener{
         public StartActionListener(){}
-
         @Override
         public void actionPerformed(ActionEvent e) {
-
                timeLimit=frame.getTimeLimit();
                numberOfClients=frame.getNrC();
                numberOfServers=frame.getNrQ();
@@ -223,7 +226,7 @@ public class SimulationManager implements Runnable{
                minServiceTime=frame.getMinS();
                maxServiceTime=frame.getMaxS();
                selectionPolicy=frame.getSelectedStrategy();
-               if(minProcessingTime>maxProcessingTime || minServiceTime>maxServiceTime) {
+               if(timeLimit<0 || minProcessingTime<0 || maxProcessingTime<0 || minProcessingTime>maxProcessingTime || minServiceTime<0 || maxServiceTime<0|| minServiceTime>maxServiceTime) {
                    frame.displayError("Argumente invalide!");
                    return;
                }
@@ -231,8 +234,29 @@ public class SimulationManager implements Runnable{
                generateNRandomTasks();
                frame.startAnimation();
                running=true;
-               Thread t=new Thread(SimulationManager.this);
-               t.start();
+               Thread.ofVirtual().start(SimulationManager.this);
+        }
+    }
+
+    private class RestartActionListener implements ActionListener{
+        public RestartActionListener(){}
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(!running) {
+                Task.setCounter(0);
+                Server.setCounter(0);
+                nrOfClientsInLine = 0;
+                averageServiceTime = -1;
+                averageWaitingTime = -1;
+                peakTimeClients = -1;
+                peakTime = -1;
+                time = 0;
+                running = false;
+                generatedTasks.clear();
+                Task.setCounter(0);
+                Server.setCounter(0);
+                frame.restartToSetup();
+            }
         }
     }
 }

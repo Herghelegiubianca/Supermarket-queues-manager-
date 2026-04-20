@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Pagină-1" id="HwjFBSfsFWQ53E8I1_U8">
+    <mxGraphModel dx="1030" dy="527" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-1" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" value="org.example.gui" vertex="1">
+          <mxGeometry height="90" width="220" x="110" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-2" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" value="org.example.model" vertex="1">
+          <mxGeometry height="90" width="220" x="170" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-3" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" value="org.example.businessLogic" vertex="1">
+          <mxGeometry height="90" width="220" x="500" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-4" edge="1" parent="1" source="7p6-KwBAgEohSSHTJQnp-3" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=52;exitPerimeter=0;entryX=0;entryY=0;entryDx=220;entryDy=52;entryPerimeter=0;startArrow=none;startFill=0;startSize=12;" target="7p6-KwBAgEohSSHTJQnp-1" value="Use">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="360" y="220" as="sourcePoint" />
+            <mxPoint x="410" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-5" edge="1" parent="1" source="7p6-KwBAgEohSSHTJQnp-3" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=220;entryDy=14;entryPerimeter=0;" target="7p6-KwBAgEohSSHTJQnp-2" value="Use">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="600" y="550" as="sourcePoint" />
+            <mxPoint x="430" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7p6-KwBAgEohSSHTJQnp-7" edge="1" parent="1" source="7p6-KwBAgEohSSHTJQnp-1" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=130;entryDy=14;entryPerimeter=0;startArrow=none;startFill=0;startSize=12;" target="7p6-KwBAgEohSSHTJQnp-2" value="Use">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="370" y="400" as="sourcePoint" />
+            <mxPoint x="200" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
